@@ -10,19 +10,69 @@ app.use(cors());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+
+  const userExist = users.find(user => user.username === username);
+
+  if(!userExist) {
+    return response.status(404).json({ error: "Usuário não existe"})
+  }
+
+  request.user = userExist;
+
+  return next()
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
+  const { user } = request;
+
+  if(user.pro === false && user.todos.length < 10 || user.pro === true) {
+    return next()
+  }
+
+  return response.status(403).json({ error: "Adquira o plano PRO!" })
   // Complete aqui
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+  const { id } = request.params;
+
+  const userExist = users.find(user => user.username === username);
+  
+  if(!userExist) {
+    return response.status(404).json({error: "Erro"});
+  }
+  if(!validate(id)) {
+    return response.status(400).json({error: "Erro"});
+  }
+
+  const todosExist = userExist.todos.find(todos => todos.id === id);
+
+  if(!todosExist) {
+    return response.status(404).json({error: "Erro"});
+  }
+
+  request.user = userExist;
+  request.todo = todosExist;
+
+  return next();
+
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
+  const { id } = request.params;
+
+  const userExist = users.find(user => user.id === id);
+
+  if(!userExist) {
+    return response.status(404).json({error: "Erro"});
+  }
+
+  request.user = userExist;
+
+  return next()
+  
 }
 
 app.post('/users', (request, response) => {
